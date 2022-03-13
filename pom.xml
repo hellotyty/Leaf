@@ -5,7 +5,7 @@
     <groupId>com.sankuai.inf.leaf</groupId>
     <artifactId>leaf-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <name>Leaf</name>
     <modules>
         <module>leaf-core</module>
@@ -36,26 +36,27 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring.version>4.3.18.RELEASE</spring.version>
+        <spring.version>5.2.12.RELEASE</spring.version>
         <junit.version>4.12</junit.version>
         <maven.compiler.version>3.5.1</maven.compiler.version>
-        <mybatis.version>3.3.0</mybatis.version>
+        <mybatis.version>3.5.9</mybatis.version>
         <perf4j.version>0.9.16</perf4j.version>
-        <curator.version>2.6.0</curator.version>
-        <slf4j.version>1.7.2</slf4j.version>
-        <druid.version>1.0.18</druid.version>
-        <jackson-databind.version>2.9.6</jackson-databind.version>
-        <mysql-connector-java.version>5.1.38</mysql-connector-java.version>
-        <commons-io.version>2.4</commons-io.version>
-        <log4j.version>2.7</log4j.version>
-        <mybatis-spring.version>1.2.5</mybatis-spring.version>
+        <curator.version>5.2.0</curator.version>
+        <slf4j.version>1.7.30</slf4j.version>
+        <druid.version>1.2.8</druid.version>
+        <jackson-databind.version>2.11.3</jackson-databind.version>
+        <mysql-connector-java.version>8.0.22</mysql-connector-java.version>
+        <commons-io.version>2.7</commons-io.version>
+        <log4j.version>2.17.1</log4j.version>
+        <mybatis-spring.version>2.0.5</mybatis-spring.version>
+        <versions-maven-plugin.version>2.7</versions-maven-plugin.version>
     </properties>
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>com.sankuai.inf.leaf</groupId>
                 <artifactId>leaf-core</artifactId>
-                <version>1.0.1</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
@@ -196,6 +197,14 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>${versions-maven-plugin.version}</version>
+                <configuration>
+                    <generateBackupPoms>false</generateBackupPoms>
+                </configuration>
             </plugin>
         </plugins>
     </build>
