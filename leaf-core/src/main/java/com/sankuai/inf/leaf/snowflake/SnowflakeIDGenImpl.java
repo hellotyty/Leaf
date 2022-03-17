@@ -31,21 +31,22 @@ public class SnowflakeIDGenImpl implements IDGen {
     private long lastTimestamp = -1L;
     private static final Random RANDOM = new Random();
 
-    public SnowflakeIDGenImpl(String zkAddress, int port) {
-        //Thu Nov 04 2010 09:42:54 GMT+0800 (中国标准时间) 
-        this(zkAddress, port, 1288834974657L);
+    public SnowflakeIDGenImpl(String zkAddress, int port, String leafName) {
+        //Thu Nov 04 2010 09:42:54 GMT+0800 (中国标准时间)
+        this(zkAddress, port, leafName, 1288834974657L);
     }
 
     /**
      * @param zkAddress zk地址
      * @param port      snowflake监听端口
+     * @param leafName  leafName
      * @param twepoch   起始的时间戳
      */
-    public SnowflakeIDGenImpl(String zkAddress, int port, long twepoch) {
+    public SnowflakeIDGenImpl(String zkAddress, int port, String leafName, long twepoch) {
         this.twepoch = twepoch;
         Preconditions.checkArgument(timeGen() > twepoch, "Snowflake not support twepoch gt currentTime");
         final String ip = Utils.getIp();
-        SnowflakeZookeeperHolder holder = new SnowflakeZookeeperHolder(ip, String.valueOf(port), zkAddress);
+        SnowflakeZookeeperHolder holder = new SnowflakeZookeeperHolder(ip, String.valueOf(port), leafName, zkAddress);
         LOGGER.info("twepoch:{} ,ip:{} ,zkAddress:{} port:{}", twepoch, ip, zkAddress, port);
         boolean initFlag = holder.init();
         if (initFlag) {

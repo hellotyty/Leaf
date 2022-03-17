@@ -1,10 +1,13 @@
 package com.sankuai.inf.leaf.segment.model;
 
+import java.time.LocalDateTime;
+
 public class LeafAlloc {
     private String key;
     private long maxId;
     private int step;
-    private String updateTime;
+    private String description;
+    private LocalDateTime updateTime;
 
     public String getKey() {
         return key;
@@ -30,11 +33,19 @@ public class LeafAlloc {
         this.step = step;
     }
 
-    public String getUpdateTime() {
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDateTime getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(String updateTime) {
+    public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
     }
 }

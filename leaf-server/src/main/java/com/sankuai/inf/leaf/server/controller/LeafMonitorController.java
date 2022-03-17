@@ -1,21 +1,22 @@
 package com.sankuai.inf.leaf.server.controller;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.sankuai.inf.leaf.segment.SegmentIDGenImpl;
-import com.sankuai.inf.leaf.server.model.SegmentBufferView;
 import com.sankuai.inf.leaf.segment.model.LeafAlloc;
 import com.sankuai.inf.leaf.segment.model.SegmentBuffer;
+import com.sankuai.inf.leaf.server.model.SegmentBufferView;
 import com.sankuai.inf.leaf.server.service.SegmentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +34,7 @@ public class LeafMonitorController {
         Map<String, SegmentBufferView> data = new HashMap<>();
         SegmentIDGenImpl segmentIDGen = segmentService.getIdGen();
         if (segmentIDGen == null) {
-            throw new IllegalArgumentException("You should config leaf.segment.enable=true first");
+            throw new IllegalArgumentException("You should config leaf.segment.enabled=true first");
         }
         Map<String, SegmentBuffer> cache = segmentIDGen.getCache();
         for (Map.Entry<String, SegmentBuffer> entry : cache.entrySet()) {
@@ -63,8 +64,51 @@ public class LeafMonitorController {
     public String getDb(Model model) {
         SegmentIDGenImpl segmentIDGen = segmentService.getIdGen();
         if (segmentIDGen == null) {
-            throw new IllegalArgumentException("You should config leaf.segment.enable=true first");
+            throw new IllegalArgumentException("You should config leaf.segment.enabled=true first");
         }
+        List<LeafAlloc> items = segmentIDGen.getAllLeafAllocs();
+        logger.info("DB info {}", items);
+        model.addAttribute("items", items);
+        return "db";
+    }
+
+    @RequestMapping(value = "add-biz-tag")
+    public String addBizTag(@RequestParam("bizTag") String bizTag, @RequestParam(value = "maxId") long maxId,
+                           @RequestParam("step") int step, @RequestParam("description") String description,
+                           Model model) {
+        Preconditions
+                .checkArgument(StringUtils.hasText(bizTag) && StringUtils.hasText(description), "bizTag or description must not" +
+                        " be null");
+        Preconditions
+                .checkArgument(maxId > 0 && step > 0, "maxId or step must be positive");
+
+        SegmentIDGenImpl segmentIDGen = segmentService.getIdGen();
+        if (segmentIDGen == null) {
+            throw new IllegalArgumentException("You should config leaf.segment.enabled=true first");
+        }
+        LeafAlloc temp = new LeafAlloc();
+        temp.setKey(bizTag);
+        temp.setStep(step);
+        temp.setMaxId(maxId);
+        temp.setDescription(description);
+        temp.setUpdateTime(LocalDateTime.now());
+        LeafAlloc leafAlloc = segmentIDGen.addLeafAlloc(temp);
+        logger.info("add leafAlloc info {}", leafAlloc);
+        model.addAttribute("items", Lists.newArrayList(leafAlloc));
+        return "db";
+    }
+
+    @RequestMapping(value = "remove-biz-tag")
+    public String removeBizTag(@RequestParam("bizTag") String bizTag, Model model) {
+        Preconditions
+                .checkArgument(StringUtils.hasText(bizTag), "bizTag must not be null");
+
+        SegmentIDGenImpl segmentIDGen = segmentService.getIdGen();
+        if (segmentIDGen == null) {
+            throw new IllegalArgumentException("You should config leaf.segment.enabled=true first");
+        }
+        segmentIDGen.removeLeafAlloc(bizTag);
+        logger.info("remove bizTag {}", bizTag);
         List<LeafAlloc> items = segmentIDGen.getAllLeafAllocs();
         logger.info("DB info {}", items);
         model.addAttribute("items", items);

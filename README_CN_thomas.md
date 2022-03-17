@@ -114,6 +114,8 @@ curl http://localhost:8080/api/snowflake/get/test
 ##### 监控页面
 
 号段模式：http://localhost:8080/cache
+http://localhost:8080/add-biz-tag?bizTag=test1&maxId=1&step=5&&description=myTest
+http://localhost:8080/remove-biz-tag?bizTag=test1
 
 ### Leaf Core
 

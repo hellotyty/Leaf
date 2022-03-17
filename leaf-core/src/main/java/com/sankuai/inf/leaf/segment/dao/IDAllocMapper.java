@@ -7,29 +7,40 @@ import java.util.List;
 
 public interface IDAllocMapper {
 
-    @Select("SELECT biz_tag, max_id, step, update_time FROM leaf_alloc")
+    @Select("SELECT BIZ_TAG, MAX_ID, STEP, DESCRIPTION, UPDATE_TIME FROM LEAF_ALLOC")
     @Results(value = {
-            @Result(column = "biz_tag", property = "key"),
-            @Result(column = "max_id", property = "maxId"),
-            @Result(column = "step", property = "step"),
-            @Result(column = "update_time", property = "updateTime")
+            @Result(column = "BIZ_TAG", property = "key"),
+            @Result(column = "MAX_ID", property = "maxId"),
+            @Result(column = "STEP", property = "step"),
+            @Result(column = "DESCRIPTION", property = "description"),
+            @Result(column = "UPDATE_TIME", property = "updateTime")
     })
     List<LeafAlloc> getAllLeafAllocs();
 
-    @Select("SELECT biz_tag, max_id, step FROM leaf_alloc WHERE biz_tag = #{tag}")
+    @Select("SELECT BIZ_TAG, MAX_ID, STEP, DESCRIPTION, UPDATE_TIME FROM LEAF_ALLOC WHERE BIZ_TAG = #{tag}")
     @Results(value = {
-            @Result(column = "biz_tag", property = "key"),
-            @Result(column = "max_id", property = "maxId"),
-            @Result(column = "step", property = "step")
+            @Result(column = "BIZ_TAG", property = "key"),
+            @Result(column = "MAX_ID", property = "maxId"),
+            @Result(column = "STEP", property = "step"),
+            @Result(column = "DESCRIPTION", property = "description"),
+            @Result(column = "UPDATE_TIME", property = "updateTime")
     })
     LeafAlloc getLeafAlloc(@Param("tag") String tag);
 
-    @Update("UPDATE leaf_alloc SET max_id = max_id + step WHERE biz_tag = #{tag}")
-    void updateMaxId(@Param("tag") String tag);
+    @Update(value = "UPDATE LEAF_ALLOC SET MAX_ID = MAX_ID + STEP, UPDATE_TIME = #{updateTime} WHERE BIZ_TAG = #{key}")
+    int updateMaxId(@Param("leafAlloc") LeafAlloc leafAlloc);
 
-    @Update("UPDATE leaf_alloc SET max_id = max_id + #{step} WHERE biz_tag = #{key}")
-    void updateMaxIdByCustomStep(@Param("leafAlloc") LeafAlloc leafAlloc);
+    @Insert(value = "INSERT INTO LEAF_ALLOC (BIZ_TAG, MAX_ID, STEP, DESCRIPTION, UPDATE_TIME) VALUES (#{key}, " +
+            "#{maxId}, #{step}, #{description}, #{updateTime})")
+    int insertLeafAlloc(@Param("leafAlloc") LeafAlloc leafAlloc);
 
-    @Select("SELECT biz_tag FROM leaf_alloc")
+    @Delete(value = "DELETE FROM LEAF_ALLOC WHERE BIZ_TAG = #{tag}")
+    int deleteLeafAlloc(@Param("tag") String tag);
+
+    @Update(value = "UPDATE LEAF_ALLOC SET MAX_ID = MAX_ID + #{step}, UPDATE_TIME = #{updateTime} WHERE BIZ_TAG = " +
+            "#{key}")
+    int updateMaxIdByCustomStep(@Param("leafAlloc") LeafAlloc leafAlloc);
+
+    @Select("SELECT BIZ_TAG FROM LEAF_ALLOC")
     List<String> getAllTags();
 }

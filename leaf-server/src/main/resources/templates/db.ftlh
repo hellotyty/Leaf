@@ -13,6 +13,7 @@
 <th>max</th>
 <th>step</th>
 <th>update</th>
+<th>description</th>
 </tr>
 </thead>
 <tbody>
@@ -23,6 +24,7 @@
 <td>${item.maxId}</td>
 <td>${item.step}</td>
 <td>${item.updateTime}</td>
+<td>${item.description}</td>
 </tr>
 <tr>
 </tr>

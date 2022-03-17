@@ -8,5 +8,7 @@ public interface IDAllocDao {
      List<LeafAlloc> getAllLeafAllocs();
      LeafAlloc updateMaxIdAndGetLeafAlloc(String tag);
      LeafAlloc updateMaxIdByCustomStepAndGetLeafAlloc(LeafAlloc leafAlloc);
+     LeafAlloc insertLeafAlloc(LeafAlloc leafAlloc);
+     int deleteLeafAlloc(String tag);
      List<String> getAllTags();
 }

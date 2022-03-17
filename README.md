@@ -4,7 +4,7 @@
 >
 > ​               — Leibnitz
 
-[中文文档](./README_CN.md) | [English Document](./README.md)
+[优化版中文文档](./README_CN_thomas.md) | [中文文档](./README_CN.md) | [English Document](./README.md)
 
 ## Introduction
 

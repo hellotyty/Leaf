@@ -12,6 +12,7 @@ import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 
 import javax.sql.DataSource;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class IDAllocDaoImpl implements IDAllocDao {
@@ -40,7 +41,10 @@ public class IDAllocDaoImpl implements IDAllocDao {
     public LeafAlloc updateMaxIdAndGetLeafAlloc(String tag) {
         SqlSession sqlSession = sqlSessionFactory.openSession();
         try {
-            sqlSession.update("com.sankuai.inf.leaf.segment.dao.IDAllocMapper.updateMaxId", tag);
+            LeafAlloc temp = new LeafAlloc();
+            temp.setKey(tag);
+            temp.setUpdateTime(LocalDateTime.now());
+            sqlSession.update("com.sankuai.inf.leaf.segment.dao.IDAllocMapper.updateMaxId", temp);
             LeafAlloc result = sqlSession.selectOne("com.sankuai.inf.leaf.segment.dao.IDAllocMapper.getLeafAlloc", tag);
             sqlSession.commit();
             return result;
@@ -54,9 +58,36 @@ public class IDAllocDaoImpl implements IDAllocDao {
         SqlSession sqlSession = sqlSessionFactory.openSession();
         try {
             sqlSession.update("com.sankuai.inf.leaf.segment.dao.IDAllocMapper.updateMaxIdByCustomStep", leafAlloc);
-            LeafAlloc result = sqlSession.selectOne("com.sankuai.inf.leaf.segment.dao.IDAllocMapper.getLeafAlloc", leafAlloc.getKey());
+            LeafAlloc result = sqlSession.selectOne("com.sankuai.inf.leaf.segment.dao.IDAllocMapper.getLeafAlloc",
+                    leafAlloc.getKey());
             sqlSession.commit();
             return result;
+        } finally {
+            sqlSession.close();
+        }
+    }
+
+    @Override
+    public LeafAlloc insertLeafAlloc(LeafAlloc leafAlloc) {
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        try {
+            sqlSession.insert("com.sankuai.inf.leaf.segment.dao.IDAllocMapper.insertLeafAlloc", leafAlloc);
+            LeafAlloc result = sqlSession.selectOne("com.sankuai.inf.leaf.segment.dao.IDAllocMapper.getLeafAlloc",
+                    leafAlloc.getKey());
+            sqlSession.commit();
+            return result;
+        } finally {
+            sqlSession.close();
+        }
+    }
+
+    @Override
+    public int deleteLeafAlloc(String tag) {
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        try {
+            int rows = sqlSession.delete("com.sankuai.inf.leaf.segment.dao.IDAllocMapper.deleteLeafAlloc", tag);
+            sqlSession.commit();
+            return rows;
         } finally {
             sqlSession.close();
         }

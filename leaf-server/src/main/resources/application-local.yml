@@ -1,0 +1,48 @@
+#mysql
+spring:
+  datasource:
+    hikari:
+      connection-timeout: 10000
+      auto-commit: true
+      connection-test-query: SELECT 1
+      maximum-pool-size: 30
+      max-lifetime: 200000
+      minimum-idle: 10
+      idle-timeout: 30000
+    url: jdbc:mysql://127.0.0.1:3307/leaf?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+#oracle
+#spring:
+#  datasource:
+#    hikari:
+#      connection-timeout: 10000
+#      auto-commit: true
+#      connection-test-query: SELECT * from dual
+#      schema: LEAF
+#      maximum-pool-size: 30
+#      max-lifetime: 200000
+#      minimum-idle: 10
+#      idle-timeout: 30000
+#    driver-class-name: oracle.jdbc.OracleDriver
+#    username: root
+#    password: 123456
+#    url: jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(HOST=192.168.162.128)(PORT=1521)(PROTOCOL=tcp))(CONNECT_DATA=(SERVICE_NAME=XE)))
+  freemarker:
+    cache: false
+    check-template-location: true
+    content-type: text/html
+    expose-session-attributes: true
+    request-context-attribute: request
+    expose-request-attributes: true
+    charset: UTF-8
+leaf:
+  name: com.sankuai.leaf.opensource.test
+  segment:
+    enabled: true
+  snowflake:
+    enable: false
+logging:
+  level:
+    com.sankuai.inf.leaf: debug
