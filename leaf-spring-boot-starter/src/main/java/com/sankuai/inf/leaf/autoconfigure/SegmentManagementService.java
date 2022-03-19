@@ -29,15 +29,15 @@ import java.util.Map;
  * @description
  * @version 1.0
  */
-public class SegmentMonitorService {
-    private Logger logger = LoggerFactory.getLogger(SegmentMonitorService.class);
+public class SegmentManagementService {
+    private Logger logger = LoggerFactory.getLogger(SegmentManagementService.class);
 
     private final RequestMappingHandlerMapping requestMappingHandlerMapping;
     private final SegmentIDGenImpl segmentIDGen;
     private final LeafProperty leafProperty;
 
-    public SegmentMonitorService(RequestMappingHandlerMapping requestMappingHandlerMapping,
-                                 SegmentIDGenImpl segmentIDGen, LeafProperty leafProperty) {
+    public SegmentManagementService(RequestMappingHandlerMapping requestMappingHandlerMapping,
+                                    SegmentIDGenImpl segmentIDGen, LeafProperty leafProperty) {
         this.requestMappingHandlerMapping = requestMappingHandlerMapping;
         this.segmentIDGen = segmentIDGen;
         this.leafProperty = leafProperty;

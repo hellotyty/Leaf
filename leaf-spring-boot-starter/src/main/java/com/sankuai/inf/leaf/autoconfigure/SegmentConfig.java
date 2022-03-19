@@ -5,7 +5,6 @@ import com.sankuai.inf.leaf.common.Status;
 import com.sankuai.inf.leaf.segment.SegmentIDGenImpl;
 import com.sankuai.inf.leaf.segment.dao.IDAllocDao;
 import com.sankuai.inf.leaf.segment.dao.impl.IDAllocDaoImpl;
-import org.apache.ibatis.reflection.ArrayUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.yaml.snakeyaml.util.ArrayUtils;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
@@ -77,9 +75,9 @@ public class SegmentConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "leaf.segment", name = "monitorable", havingValue = "true", matchIfMissing = true)
-    public SegmentMonitorService segmentMonitorService(RequestMappingHandlerMapping requestMappingHandlerMapping,
-                                                       SegmentIDGenImpl segmentIDGen, LeafProperty leafProperty) {
-        return new SegmentMonitorService(requestMappingHandlerMapping, segmentIDGen, leafProperty);
+    @ConditionalOnProperty(prefix = "leaf.segment", name = "manageable", havingValue = "true", matchIfMissing = true)
+    public SegmentManagementService segmentManagementService(RequestMappingHandlerMapping requestMappingHandlerMapping,
+                                                             SegmentIDGenImpl segmentIDGen, LeafProperty leafProperty) {
+        return new SegmentManagementService(requestMappingHandlerMapping, segmentIDGen, leafProperty);
     }
 }

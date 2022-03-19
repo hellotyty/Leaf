@@ -4,7 +4,7 @@
     <parent>
         <groupId>xyz.hellothomas</groupId>
         <artifactId>leaf-parent</artifactId>
-        <version>1.0.2-SNAPSHOT</version>
+        <version>1.0.2</version>
     </parent>
     <artifactId>leaf-core</artifactId>
     <packaging>jar</packaging>

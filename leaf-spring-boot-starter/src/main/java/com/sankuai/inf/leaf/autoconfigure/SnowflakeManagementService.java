@@ -23,11 +23,11 @@ import java.util.Map;
  * @descripton
  * @version 1.0
  */
-public class SnowflakeMonitorService {
+public class SnowflakeManagementService {
     private final RequestMappingHandlerMapping requestMappingHandlerMapping;
     private final LeafProperty leafProperty;
 
-    public SnowflakeMonitorService(RequestMappingHandlerMapping requestMappingHandlerMapping, LeafProperty leafProperty) {
+    public SnowflakeManagementService(RequestMappingHandlerMapping requestMappingHandlerMapping, LeafProperty leafProperty) {
         this.requestMappingHandlerMapping = requestMappingHandlerMapping;
         this.leafProperty = leafProperty;
     }

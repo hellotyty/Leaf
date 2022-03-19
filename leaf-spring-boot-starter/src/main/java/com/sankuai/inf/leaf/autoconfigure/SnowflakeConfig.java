@@ -32,9 +32,9 @@ public class SnowflakeConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "leaf.snowflake", name = "monitorable", havingValue = "true", matchIfMissing = true)
-    public SnowflakeMonitorService snowflakeMonitorService(RequestMappingHandlerMapping requestMappingHandlerMapping,
-                                                           LeafProperty leafProperty) {
-        return new SnowflakeMonitorService(requestMappingHandlerMapping, leafProperty);
+    @ConditionalOnProperty(prefix = "leaf.snowflake", name = "manageable", havingValue = "true", matchIfMissing = true)
+    public SnowflakeManagementService snowflakeManagementService(RequestMappingHandlerMapping requestMappingHandlerMapping,
+                                                                 LeafProperty leafProperty) {
+        return new SnowflakeManagementService(requestMappingHandlerMapping, leafProperty);
     }
 }

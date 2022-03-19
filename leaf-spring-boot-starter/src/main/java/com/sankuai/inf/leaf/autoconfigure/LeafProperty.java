@@ -36,7 +36,7 @@ public class LeafProperty {
 
         private String[] autoInitBizTags;
 
-        private boolean monitorable;
+        private boolean manageable;
     }
 
     @Getter
@@ -50,6 +50,6 @@ public class LeafProperty {
 
         private int port;
 
-        private boolean monitorable;
+        private boolean manageable;
     }
 }
