@@ -6,7 +6,7 @@
 >
 > ​								— 莱布尼茨
 
-[优化版中文文档](./README_CN_thomas.md) | [中文文档](./README_CN.md) | [English Document](./README.md)
+[优化版中文文档](./README.md) | [中文文档](./README_CN_Meituan.md) | [English Document](./README_Meituan.md)
 
 ## Introduction
 

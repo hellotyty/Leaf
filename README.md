@@ -2,117 +2,207 @@
 
 > There are no two identical leaves in the world.
 >
-> ​               — Leibnitz
+> 世界上没有两片完全相同的树叶。
+>
+> ​								— 莱布尼茨
 
-[优化版中文文档](./README_CN_thomas.md) | [中文文档](./README_CN.md) | [English Document](./README.md)
+[优化版文档](./README.md) | [美团中文文档](./README_CN_Meituan.md) | [Meituan English Document](./README_Meituan.md)
+
+*你的start是我前进的动力*
 
 ## Introduction
 
-Leaf refers to some common ID generation schemes in the industry, including redis, UUID, snowflake, etc.
-Each of the above approaches has its own problems, so we decided to implement a set of distributed ID generation services to meet the requirements.
-At present, Leaf covers Meituan review company's internal finance, catering, takeaway, hotel travel, cat's eye movie and many other business lines. On the basis of 4C8G VM, through the company RPC method, QPS pressure test results are nearly 5w/s, TP999 1ms.
+Leaf 最早期需求是各个业务线的订单ID生成需求。在美团早期，有的业务直接通过DB自增的方式生成ID，有的业务通过redis缓存来生成ID，也有的业务直接用UUID这种方式来生成ID。以上的方式各自有各自的问题，因此我们决定实现一套分布式ID生成服务来满足需求。具体Leaf 设计文档见：[ leaf 美团分布式ID生成服务 ](https://tech.meituan.com/MT_Leaf.html )
 
-You can use it to encapsulate a distributed unique id distribution center in a service-oriented SOA architecture as the id distribution provider for all applications
+目前Leaf覆盖了美团点评公司内部金融、餐饮、外卖、酒店旅游、猫眼电影等众多业务线。在4C8G VM基础上，通过公司RPC方式调用，QPS压测结果近5w/s，TP999 1ms。
+
+<mark>考虑到各个业务应用都调用同一个ID生成服务，对ID生成服务的可靠性，可用性有极高的要求，在美团Leaf的基础上封装了starter，便于将ID生成功能嵌入到各业务应用中，新增支持oracle数据库。</mark>
+
+与[feature/spring-boot-starter](https://github.com/Meituan-Dianping/Leaf/blob/feature/spring-boot-starter/README_CN.md)不同的是，只需yml配置无需注解。新增配置项auto-init-biz-tags支持启动是初始化segment，缩短ID首次生成耗时；新增配置项data-source-name支持多数据源应用使用segment；新增配置项manageable配合base-path支持暴露管理api。
 
 ## Quick Start
 
+### leaf-spring-boot-starter
+
+#### 引入依赖
+
+```xml
+<dependency>
+     <groupId>xyz.hellothomas</groupId>
+     <artifactId>leaf-spring-boot-starter</artifactId>
+     <version>1.0.2</version>
+ </dependency>
+```
+
+https://github.com/Meituan-Dianping/Leaf/blob/feature/spring-boot-starter/README_CN.md
+
+#### yml配置
+
+```yml
+leaf:
+  name: com.sankuai.leaf.opensource.test #leaf服务名，snowflakeId注册zk时使用
+  base-path: /leaf #管理api的basePath,默认/leaf
+  segment:
+    enabled: true #开启使用segmentId，默认false
+    data-source-name: dataSource1 #segment使用的数据源，单数据源可不配置
+    auto-init-biz-tags: bizTag1,bizTag2 #启动时需自动初始化的bizTag,多个以逗号分隔
+    manageable: true #暴露管理api,默认false
+  snowflake:
+    enable: false #开启使用snowflakeId，默认false
+    zk-address: 127.0.0.1:2181 #zk地址
+    port: 8080 #服务注册端口
+    manageable: true #暴露管理api,默认false
+```
+
+#### api使用
+
+```java
+@Autowired
+private IDGen idGen;
+
+// key: bizTag
+idGen.get(key)
+
+// 同时使用segmentId和snowflakeId时需指定类型注入
+@Autowired
+private SegmentIDGenImpl segmentIdGen;
+
+@Autowired
+private SnowflakeIDGenImpl snowflakeIdGen;
+```
+
+#### 管理api
+
+http://localhost:8080/leaf/segment/cache
+
+http://localhost:8080/leaf/segment/db
+
+http://localhost:8080/leaf/segment/add-biz-tag?bizTag=test1&maxId=1&step=5&&description=myTest
+
+http://localhost:8080leaf/segment/remove-biz-tag?bizTag=test1
+
+#### 创建数据表
+
+如果使用号段模式，需要建立DB表，脚本在依赖包leaf-core/resources/scripts目录下，mysql -> leaf_alloc-mysql.sql，oracle -> leaf_alloc-oracle.sql
+
+```sql
+-- leaf_alloc-mysql.sql
+CREATE TABLE LEAF_ALLOC (
+  BIZ_TAG VARCHAR(128) NOT NULL DEFAULT '',
+  MAX_ID BIGINT NOT NULL DEFAULT '1',
+  STEP INT NOT NULL,
+  DESCRIPTION VARCHAR(256) DEFAULT NULL,
+  UPDATE_TIME DATETIME(3) NOT NULL DEFAULT NOW(3),
+  PRIMARY KEY (BIZ_TAG)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_bin COMMENT='LEAF分配表';
+
+-- leaf_alloc-oracle.sql
+CREATE TABLE LEAF_ALLOC (
+  BIZ_TAG VARCHAR2(128 char) NOT NULL DEFAULT '',
+  MAX_ID NUMBER(20,0) NOT NULL DEFAULT '1',
+  STEP NUMBER(11,0) NOT NULL,
+  DESCRIPTION VARCHAR2(256 char) DEFAULT NULL,
+  UPDATE_TIME TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (BIZ_TAG)
+);
+COMMENT ON TABLE LEAF_ALLOC IS 'LEAF分配表';
+```
+
 ### Leaf Server
 
-Leaf provides an HTTP service based on spring boot to get the id
+我们提供了一个基于spring boot的HTTP服务来获取ID
 
-#### run Leaf Server
 
-##### build
+#### 配置介绍
+
+Leaf 提供两种生成的ID的方式（号段模式和snowflake模式），你可以同时开启两种方式，也可以指定开启某种方式（默认两种方式为关闭状态）。
+
+| 配置项                          | 含义                                       | 默认值 |
+| ------------------------------- | ------------------------------------------ | ------ |
+| leaf.name                       | leaf 服务名                                |        |
+| leaf.base-path                  | 管理api的basePath                          | /leaf  |
+| leaf.segment.enable             | 是否开启号段模式                           | false  |
+| leaf.segment.data-source-name   | segment使用的数据源，单数据源可不配置      |        |
+| leaf.segment.auto-init-biz-tags | 启动时需自动初始化的bizTag，多个以逗号分隔 |        |
+| leaf.segment.manageable         | 是否暴露管理api                            | false  |
+| leaf.snowflake.enable           | 是否开启snowflake模式                      | false  |
+| leaf.snowflake.zk-address       | snowflake模式下的zk地址                    |        |
+| leaf.snowflake.port             | snowflake模式下的服务注册端口              |        |
+| leaf.snowflake.manageable       | 是否暴露管理api                            | false  |
+
+#### 号段模式
+
+如果使用号段模式，需要建立DB表，并配置数据源（比如spring.datasource.url，spring.datasource.username，spring.datasource.password）
+
+如果不想使用该模式配置leaf.segment.enable=false即可。
+
+##### 创建数据表
+
+见leaf-spring-boot-starter中创建数据表
+
+##### 配置相关数据项
+
+见leaf-spring-boot-starter中yml配置
+
+#### Snowflake模式
+
+算法取自twitter开源的snowflake算法。
+
+如果不想使用该模式配置leaf.snowflake.enable=false即可。
+
+##### 配置zookeeper地址
+
+见leaf-spring-boot-starter中yml配置
+#### 运行Leaf Server
+
+##### 打包服务
 
 ```shell
-git clone git@github.com:Meituan-Dianping/Leaf.git
+git clone git@gitee.com:hellothomas/Leaf.git
+//按照上面指引在工程里面配置好yml
 cd leaf
 mvn clean install -DskipTests
 cd leaf-server
 ```
 
-##### run
-###### maven
+##### 运行服务
+
+*注意:首先得先配置好数据库表或者zk地址*
+###### mvn方式
 
 ```shell
 mvn spring-boot:run
 ```
 
-or 
-###### shell command
+###### 脚本方式
 
 ```shell
 sh deploy/run.sh
 ```
-
-##### test
+##### 测试
 
 ```shell
-#segment
+#segment 
 curl http://localhost:8080/api/segment/get/leaf-segment-test
 #snowflake
 curl http://localhost:8080/api/snowflake/get/test
 ```
 
-#### Configuration
+##### 监控页面
 
-Leaf provides two ways to generate ids (segment mode and snowflake mode), which you can turn on at the same time or specify one way to turn on (both are off by default).
+号段模式：http://localhost:8080/cache
 
-Leaf Server configuration is in the leaf-server/src/main/resources/leaf.properties
+http://localhost:8080/db
 
-| configuration             | meaning                          | default |
-| ------------------------- | ----------------------------- | ------ |
-| leaf.name                 | leaf service name                  |        |
-| leaf.segment.enable       | whether segment mode is enabled             | false  |
-| leaf.jdbc.url             | mysql url                 |        |
-| leaf.jdbc.username        | mysql username                 |        |
-| leaf.jdbc.password        | mysql password                   |        |
-| leaf.snowflake.enable     | whether snowflake mode is enabled         | false  |
-| leaf.snowflake.zk.address | zk address under snowflake mode      |        |
-| leaf.snowflake.port       | service registration port under snowflake mode |        |
+##### 管理页面
 
-### Segment mode 
+号段模式：http://localhost:8080/add-biz-tag?bizTag=test1&maxId=1&step=5&&description=myTest
 
-In order to use segment mode, you need to create DB table first, and configure leaf.jdbc.url, leaf.jdbc.username, leaf.jdbc.password
+http://localhost:8080/remove-biz-tag?bizTag=test1
 
-If you do not want use it, just configure leaf.segment.enable=false to disable it.
+### Leaf Core
 
-```sql
-CREATE DATABASE leaf
-CREATE TABLE `leaf_alloc` (
-  `biz_tag` varchar(128)  NOT NULL DEFAULT '', -- your biz unique name
-  `max_id` bigint(20) NOT NULL DEFAULT '1',
-  `step` int(11) NOT NULL,
-  `description` varchar(256)  DEFAULT NULL,
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`biz_tag`)
-) ENGINE=InnoDB;
+当然，为了追求更高的性能，需要通过RPC Server来部署Leaf 服务，那仅需要引入leaf-core的包，把生成ID的API封装到指定的RPC框架中即可。
 
-insert into leaf_alloc(biz_tag, max_id, step, description) values('leaf-segment-test', 1, 2000, 'Test leaf Segment Mode Get Id')
-```
-### Snowflake mode 
-
-The algorithm is taken from twitter's open-source snowflake algorithm.
-
-If you do not want to use it, just configure leaf.snowflake.enable=false to disable it.
-
-Configure the zookeeper address
-
-```
-leaf.snowflake.zk.address=${address}
-leaf.snowflake.enable=true
-leaf.snowflake.port=${port}
-```
-
-configure leaf.snowflake.zk.address in the leaf.properties, and configure the leaf service listen port leaf.snowflake.port.
-
-### monitor page
-
-segment mode: http://localhost:8080/cache
-
-### Leaf Core 
-
-Of course, in order to pursue higher performance, you need to deploy the Leaf service through RPC Server, which only needs to introduce the leaf-core package and encapsulate the API that generates the ID into the specified RPC framework.
-
-#### Attention
-Note that leaf's current IP acquisition logic in the case of snowflake mode takes the first network card IP directly (especially for services that change IP) to avoid wasting the workId
+### 注意事项
+注意现在leaf使用snowflake模式的情况下 其获取ip的逻辑直接取首个网卡ip【特别对于会更换ip的服务要注意】避免浪费workId
